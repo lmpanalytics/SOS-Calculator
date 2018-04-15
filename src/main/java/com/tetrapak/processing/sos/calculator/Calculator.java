@@ -5,8 +5,12 @@
  */
 package com.tetrapak.processing.sos.calculator;
 
+import java.util.Map;
+
 /**
- * This is a calculator for SOS. It takes arguments for the cluster.
+ * This is a calculator for SOS. It takes arguments for the cluster. Sales data
+ * source is BO special ledger using the last 12 months, and Potentials data
+ * source is TecWeb.
  *
  * @author SEPALMM
  */
@@ -17,6 +21,11 @@ public class Calculator {
      */
     public static void main(String[] args) {
         System.out.println("Hello World");
+        
+        QueryDB q = new QueryDB();
+        q.calculateSparePartPotential("E&CA");
+        Map<String, SOSdata> map = q.getSparePartResultsMap();
+        System.out.println("HOLD");
     }
 
 }
