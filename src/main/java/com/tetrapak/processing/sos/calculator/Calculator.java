@@ -24,7 +24,7 @@ public class Calculator {
         
         QueryDB q = new QueryDB();
         q.calculateSparePartPotential("E&CA");
-        Map<String, SOSdata> map = q.getSparePartResultsMap();
+        Map<Integer, SOSdata> map = q.getSparePartResultsMap();
         System.out.println("HOLD");
     }
 

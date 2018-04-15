@@ -79,6 +79,11 @@
             <version>1.7.25</version>
             <type>jar</type>
         </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>1.7.25</version>
+        </dependency>
     </dependencies>
     <profiles>
         <profile>
@@ -140,8 +145,13 @@
                 <dependency>
                     <groupId>org.slf4j</groupId>
                     <artifactId>slf4j-simple</artifactId>
-                    <version>1.6.4</version>
+                    <version>1.7.25</version>
                     <scope>test</scope>
+                </dependency>
+                <dependency>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                    <version>1.7.25</version>
                 </dependency>
             </dependencies>
         </profile>
@@ -190,6 +200,17 @@
                     <artifactId>arquillian-payara-server-4-remote</artifactId>
                     <version>1.0.Beta2</version>
                     <scope>test</scope>
+                </dependency>
+                <dependency>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-simple</artifactId>
+                    <version>1.7.25</version>
+                    <scope>test</scope>
+                </dependency>
+                <dependency>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                    <version>1.7.25</version>
                 </dependency>
             </dependencies>
         </profile>

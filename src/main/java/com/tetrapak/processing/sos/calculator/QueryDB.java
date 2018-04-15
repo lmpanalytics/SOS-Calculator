@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.ejb.EJB;
 import org.neo4j.driver.v1.Record;
 import org.neo4j.driver.v1.Session;
 import org.neo4j.driver.v1.StatementResult;
@@ -25,19 +24,21 @@ import org.slf4j.LoggerFactory;
  *
  * @author SEPALMM
  */
+//@RequestScoped
 public class QueryDB {
 
-    @EJB
-    private Neo4jService neo4jServiceBean;
-
+//    @EJB
+//    private Neo4jService neo4jServiceBean;
+    Neo4jService neo4jServiceBean = new Neo4jServiceBean();
     private static final Logger LOGGER = LoggerFactory.getLogger(QueryDB.class);
-    private final Map<String, SOSdata> sparePartResultsMap = new HashMap<>();
+    private final Map<Integer, SOSdata> sparePartResultsMap = new HashMap<>();
 
     public void calculateSparePartPotential(String cluster) {
         sparePartResultsMap.clear();
         List<SOSdata> list = getData(cluster);
         list.forEach((sos) -> {
-            sparePartResultsMap.put(sos.getFinalCustomerNumber(), sos);
+            int compositeKey = (sos.getSosCategory() + sos.getAssortment() + sos.getFinalCustomerNumber()).hashCode();
+            sparePartResultsMap.put(compositeKey, sos);
         });
         try {
             neo4jServiceBean.close();
@@ -47,7 +48,6 @@ public class QueryDB {
     }
 
     private List<SOSdata> getData(String cluster) {
-        System.out.println("HOLD1");
         try (Session session = neo4jServiceBean.getDRIVER().session();) {
             return session.readTransaction(new TransactionWork<List<SOSdata>>() {
                 @Override
@@ -116,7 +116,7 @@ public class QueryDB {
         return sosDataList;
     }
 
-    public Map<String, SOSdata> getSparePartResultsMap() {
+    public Map<Integer, SOSdata> getSparePartResultsMap() {
         return sparePartResultsMap;
     }
 

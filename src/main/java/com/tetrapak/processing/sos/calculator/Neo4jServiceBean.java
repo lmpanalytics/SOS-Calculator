@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author SEPALMM
  */
-@Singleton
+//@Singleton
 public class Neo4jServiceBean implements Neo4jService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Neo4jServiceBean.class);
