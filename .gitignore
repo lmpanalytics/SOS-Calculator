@@ -1,0 +1,55 @@
+# Compiled source #
+###################
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.so
+
+# Packages #
+############
+# it's better to unpack these files and commit the raw source
+# git has its own built in compression methods
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+*.ear
+*.war
+
+# Logs and databases #
+######################
+*.log
+*.Rhistory
+
+# OS generated files #
+######################
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Misc files #
+######################
+*.csv
+*.xlsx
+/target/
+/nbproject/
+/pc_data-ejb/target/
+/pc_processing-web/target/
+/pc_logic-ejb/target/
+/pc_data-common/pc_data-common/target/
+/pc_logic-common/target/
+/pc_processing-ear/target/
+/pc_neo4j_service-common/target/
+/pc_neo4j_service-ejb/target/
+/pc_models/target/
+/pc_processing-web/nbproject/
