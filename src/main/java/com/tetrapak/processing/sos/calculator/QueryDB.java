@@ -37,7 +37,7 @@ public class QueryDB {
         sparePartResultsMap.clear();
         List<SOSdata> list = getData(cluster);
         list.forEach((sos) -> {
-            int compositeKey = (sos.getSosCategory() + sos.getAssortment() + sos.getFinalCustomerNumber()).hashCode();
+            int compositeKey = (sos.getSosCategory() + sos.getCluster() + sos.getMarketGroup() + sos.getMarket() + sos.getAssortment() + sos.getFinalCustomerNumber()).hashCode();
             sparePartResultsMap.put(compositeKey, sos);
         });
         try {

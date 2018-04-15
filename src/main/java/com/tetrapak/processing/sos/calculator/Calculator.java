@@ -5,14 +5,15 @@
  */
 package com.tetrapak.processing.sos.calculator;
 
+import static com.tetrapak.processing.sos.calculator.ExcelWriter.writeExcel;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * This is a calculator for SOS. It takes arguments for the cluster. Sales data
- * source is BO special ledger using the last 12 months, and Potentials data
- * source is TecWeb.
+ * This is a calculator for SOS Data. Sales data source is BO special ledger
+ * using the last 12 months, and Potentials data source is TecWeb. The results
+ * are written to Excekl files in the working directory.
  *
  * @author SEPALMM
  */
@@ -42,12 +43,18 @@ public class Calculator {
 
                 double pot = spPotMap1.get(finalCustomerNumber);
                 double alfPot = pot * 0.3;
-                int compositeKey = ("SP_POT" + "Al flow parts" + finalCustomerNumber).hashCode();
-                alfPotMmap.put(compositeKey, new SOSdata(v.getSosCategory(), v.getCluster(), v.getMarketGroup(), v.getMarket(), "Al flow parts", finalCustomerNumber, v.getCustomerName(), v.getCustomerGroup(), alfPot));
+                int compositeKey = ("SP_POT" + v.getCluster() + v.getMarketGroup() + v.getMarket() + "Al flow parts" + finalCustomerNumber).hashCode();
+                alfPotMmap.put(compositeKey, new SOSdata(
+                        "SP_POT", v.getCluster(), v.getMarketGroup(),
+                        v.getMarket(), "Al flow parts", finalCustomerNumber,
+                        v.getCustomerName(), v.getCustomerGroup(), alfPot));
             }
         });
 
         map.putAll(alfPotMmap);
+
+        String filename = "SparePartSOS_" + cluster + ".xlsx";
+        writeExcel(map, filename);
 
     }
 
@@ -57,8 +64,11 @@ public class Calculator {
     public static void main(String[] args) {
 
         calculateSOSspareparts("E&CA");
+        calculateSOSspareparts("GC");
+        calculateSOSspareparts("GME&A");
+        calculateSOSspareparts("NC&SA");
+        calculateSOSspareparts("SAEA&O");
 
-        System.out.println("DEBUG HOLD");
     }
 
 }
