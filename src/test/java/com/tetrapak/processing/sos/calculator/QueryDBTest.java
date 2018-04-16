@@ -42,17 +42,15 @@ public class QueryDBTest {
 
 //    @EJB
 //    QueryDB queryDB;
-    
 //    @Inject
 //    QueryDB queryDB;
-    
     @Test
     @InSequence(1)
     public void testQuery() {
         System.out.println("test query");
         QueryDB queryDB = new QueryDB();
         queryDB.calculateSparePartPotential("E&CA");
-        int compositeKey = ("NET_SALES" + "Separator parts" + "0000010213").hashCode();
+        int compositeKey = ("NET_SALES" + "E&CA" + "NORDICS" + "SWEDEN" + "Separator parts" + "0000010213").hashCode();
         Assert.assertTrue(queryDB.getSparePartResultsMap().containsKey(compositeKey));
     }
 }
