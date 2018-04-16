@@ -32,10 +32,11 @@ public class QueryDB {
     Neo4jService neo4jServiceBean = new Neo4jServiceBean();
     private static final Logger LOGGER = LoggerFactory.getLogger(QueryDB.class);
     private final Map<Integer, SOSdata> sparePartResultsMap = new HashMap<>();
+    private final Map<Integer, SOSdata> maintenanceWorkResultsMap = new HashMap<>();
 
     public void calculateSparePartPotential(String cluster) {
         sparePartResultsMap.clear();
-        List<SOSdata> list = getData(cluster);
+        List<SOSdata> list = getSparePartData(cluster);
         list.forEach((sos) -> {
             int compositeKey = (sos.getSosCategory() + sos.getCluster() + sos.getMarketGroup() + sos.getMarket() + sos.getAssortment() + sos.getFinalCustomerNumber()).hashCode();
             sparePartResultsMap.put(compositeKey, sos);
@@ -47,7 +48,7 @@ public class QueryDB {
         }
     }
 
-    private List<SOSdata> getData(String cluster) {
+    private List<SOSdata> getSparePartData(String cluster) {
         try (Session session = neo4jServiceBean.getDRIVER().session();) {
             return session.readTransaction(new TransactionWork<List<SOSdata>>() {
                 @Override
@@ -116,8 +117,93 @@ public class QueryDB {
         return sosDataList;
     }
 
+    public void calculateMaintenancePotential(String cluster) {
+        maintenanceWorkResultsMap.clear();
+        List<SOSdata> list = getMaintenanceData(cluster);
+        list.forEach((sos) -> {
+            int compositeKey = (sos.getSosCategory() + sos.getCluster() + sos.getMarketGroup() + sos.getMarket() + sos.getFinalCustomerNumber()).hashCode();
+            maintenanceWorkResultsMap.put(compositeKey, sos);
+        });
+        try {
+            neo4jServiceBean.close();
+        } catch (Exception e) {
+            LOGGER.error("Error when closing Neo4j Driver: {}", e.getMessage());
+        }
+    }
+
+    private List<SOSdata> getMaintenanceData(String cluster) {
+        try (Session session = neo4jServiceBean.getDRIVER().session();) {
+            return session.readTransaction(new TransactionWork<List<SOSdata>>() {
+                @Override
+                public List<SOSdata> execute(Transaction tx) {
+                    return matchMaintenanceData(tx, cluster);
+                }
+            });
+        }
+    }
+
+    private List<SOSdata> matchMaintenanceData(Transaction tx, String cluster) {
+
+        List<SOSdata> sosDataList = new ArrayList<>();
+        boolean exceptionFlag = true;
+        int rowCounter = 0;
+
+        LocalDate date = LocalDate.now();
+
+        int currentYear = date.getYear();
+        int yearH12 = date.minusYears(1).getYear();
+        int lastMonth = date.minusMonths(1).getMonthValue();
+
+        try {
+
+            StatementResult result = tx.run(
+                    "MATCH (a:Assortment)-[r:POTENTIAL_AT]->(c:Customer)-[:LOCATED_IN]->(m:CountryDB)-[:MEMBER_OF]->(mgr:MarketGroup)-[:MEMBER_OF]->(cl:ClusterDB {name: $cluster}) "
+                    + "WHERE m.mktName = m.countryName "
+                    + "RETURN 'MW_POT' AS CATEGORY, cl.name AS Cluster, mgr.name AS MarketGrp, m.countryName AS Market, c.id AS FinalCustNo, c.name AS CustName, c.custGroup AS CustGrp, SUM(r.mtEurPotential) AS RESULT "
+                    + "UNION "
+                    + "MATCH (c:Customer)<-[r1:FOR]-(t:Transaction)-[:BOOKED_AS]->(:ServiceCategory {name: 'Maintenance Work'}), (cl:ClusterDB {name: $cluster})<-[:MEMBER_OF]-(mgr:MarketGroup)<-[:MEMBER_OF]-(m:MarketDB)-[:MADE]->(t) "
+                    + "WHERE ((t.year = $yearH12 AND t.month >= $lastMonth) OR t.year = $currentYear) AND m.mktName = m.countryName "
+                    + "RETURN 'NET_SALES' AS CATEGORY, cl.name AS Cluster, mgr.name AS MarketGrp, m.mktName AS Market, c.id AS FinalCustNo, c.name AS CustName, c.custGroup AS CustGrp, SUM(r1.netSales) AS RESULT;",
+                    Values.parameters(
+                            "cluster", cluster,
+                            "currentYear", currentYear,
+                            "yearH12", yearH12,
+                            "lastMonth", lastMonth
+                    ));
+            while (result.hasNext()) {
+                Record next = result.next();
+
+                String sosCategory = next.get("CATEGORY").asString();
+                String qCluster = next.get("Cluster").asString();
+                String marketGroup = next.get("MarketGrp").asString();
+                String market = next.get("Market").asString();
+                String finalCustomerNumber = next.get("FinalCustNo").asString();
+                String customerName = next.get("CustName").asString();
+                String customerGroup = next.get("CustGrp").asString();
+                double sosResult = next.get("RESULT").asDouble();
+
+                sosDataList.add(new SOSdata(sosCategory, qCluster, marketGroup, market, finalCustomerNumber, customerName, customerGroup, sosResult));
+                rowCounter++;
+            }
+            exceptionFlag = false;
+
+        } catch (Exception e) {
+            exceptionFlag = true;
+            LOGGER.error("Error when matchMaintenanceData: {}", e.getMessage());
+        }
+        if (!exceptionFlag) {
+            LOGGER.info("Generated {} result rows of Maintenance data.", rowCounter);
+
+        }
+        return sosDataList;
+    }
+
     public Map<Integer, SOSdata> getSparePartResultsMap() {
         return sparePartResultsMap;
+    }
+
+    public Map<Integer, SOSdata> getMaintenanceWorkResultsMap() {
+        return maintenanceWorkResultsMap;
     }
 
 }

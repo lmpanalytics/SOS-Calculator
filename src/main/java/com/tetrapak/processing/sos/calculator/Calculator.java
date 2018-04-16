@@ -5,15 +5,18 @@
  */
 package com.tetrapak.processing.sos.calculator;
 
-import static com.tetrapak.processing.sos.calculator.ExcelWriter.writeExcel;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
+import static com.tetrapak.processing.sos.calculator.ExcelWriter.writeSparePartDataToExcel;
 
 /**
  * This is a calculator for SOS Data. Sales data source is BO special ledger
  * using the last 12 months, and Potentials data source is TecWeb. The results
- * are written to Excekl files in the working directory.
+ * are written to Excel files in the working directory.
+ *
+ * Prepare Database by loading 12 month data following the procedure to load
+ * data fr 'MSP Dashboards'.
  *
  * @author SEPALMM
  */
@@ -54,7 +57,46 @@ public class Calculator {
         map.putAll(alfPotMmap);
 
         String filename = "SparePartSOS_" + cluster + ".xlsx";
-        writeExcel(map, filename);
+        writeSparePartDataToExcel(map, filename);
+
+    }
+
+    private static void calculateSOSmaintenanceWork(String cluster) {
+        Map<Integer, SOSdata> alfPotMmap = new HashMap<>();
+        QueryDB q = new QueryDB();
+        q.calculateMaintenancePotential(cluster);
+        Map<Integer, SOSdata> map = q.getMaintenanceWorkResultsMap();
+
+//        Calculate sum of maintenance potentials per final customer number
+        Map<String, Double> spPotMap1 = map.values().stream().
+                filter(f -> f.getSosCategory().equalsIgnoreCase("MW_POT")).collect(
+                Collectors.groupingBy(
+                        SOSdata::getFinalCustomerNumber,
+                        Collectors.reducing(
+                                0d,
+                                SOSdata::getSosResult,
+                                Double::sum)));
+
+// Calculate the potential sales for the Assortment group 'Al flow parts' at
+// 6% of total Maintenance work potential, and add this to the map
+        map.values().stream().forEach(v -> {
+            String finalCustomerNumber = v.getFinalCustomerNumber();
+            if (spPotMap1.containsKey(finalCustomerNumber)) {
+
+                double pot = spPotMap1.get(finalCustomerNumber);
+                double adjustedPot = pot * 1.06;
+                int compositeKey = ("MW_POT" + v.getCluster() + v.getMarketGroup() + v.getMarket() + finalCustomerNumber).hashCode();
+                alfPotMmap.put(compositeKey, new SOSdata(
+                        "MW_POT", v.getCluster(), v.getMarketGroup(),
+                        v.getMarket(), finalCustomerNumber,
+                        v.getCustomerName(), v.getCustomerGroup(), adjustedPot));
+            }
+        });
+
+        map.putAll(alfPotMmap);
+
+        String filename = "MaintenanceWorkSOS_" + cluster + ".xlsx";
+        ExcelWriter.writeMaintenanceWorkDataToExcel(map, filename);
 
     }
 
@@ -68,6 +110,12 @@ public class Calculator {
         calculateSOSspareparts("GME&A");
         calculateSOSspareparts("NC&SA");
         calculateSOSspareparts("SAEA&O");
+
+        calculateSOSmaintenanceWork("E&CA");
+        calculateSOSmaintenanceWork("GC");
+        calculateSOSmaintenanceWork("GME&A");
+        calculateSOSmaintenanceWork("NC&SA");
+        calculateSOSmaintenanceWork("SAEA&O");
 
     }
 
