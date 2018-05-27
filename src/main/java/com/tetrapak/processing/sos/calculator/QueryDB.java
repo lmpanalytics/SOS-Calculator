@@ -101,7 +101,9 @@ public class QueryDB {
                 String customerGroup = next.get("CustGrp").asString();
                 double sosResult = next.get("RESULT").asDouble();
 
-                sosDataList.add(new SOSdata(sosCategory, qCluster, marketGroup, market, assortment, finalCustomerNumber, customerName, customerGroup, sosResult));
+                if (!assortment.equals("null")) {
+                    sosDataList.add(new SOSdata(sosCategory, qCluster, marketGroup, market, assortment, finalCustomerNumber, customerName, customerGroup, sosResult));
+                }
                 rowCounter++;
             }
             exceptionFlag = false;

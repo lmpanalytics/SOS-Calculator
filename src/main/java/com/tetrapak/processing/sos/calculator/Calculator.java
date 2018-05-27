@@ -30,7 +30,7 @@ public class Calculator {
 
 //        Calculate sum of spare part potentials per final customer number
         Map<String, Double> spPotMap1 = map.values().stream().
-                filter(f -> f.getAssortment() != null && f.getSosCategory().equalsIgnoreCase("SP_POT")).collect(
+                filter(f -> f.getSosCategory().equalsIgnoreCase("SP_POT")).collect(
                 Collectors.groupingBy(
                         SOSdata::getFinalCustomerNumber,
                         Collectors.reducing(
