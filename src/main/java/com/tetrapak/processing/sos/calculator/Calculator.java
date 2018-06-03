@@ -16,7 +16,9 @@ import static com.tetrapak.processing.sos.calculator.ExcelWriter.writeSparePartD
  * are written to Excel files in the working directory.
  *
  * Prepare Database by loading 12 month data following the procedure to load
- * data fr 'MSP Dashboards'.
+ * data for 'MSP Dashboards'.
+ *
+ * Duration to load: 50 minutes. Duration to run: 1 minute.
  *
  * @author SEPALMM
  */
